@@ -11,7 +11,7 @@ tracked_upper = []
 
 app = Dash(__name__)
 app.layout = html.Div(
-    style={"display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center"},
+    style={"display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontFamily": "Helvetica"},
     children=[
     html.H1("Stock Tracker", style={"textAlign": "center"}),
     html.Div("Set Ticker: "),
