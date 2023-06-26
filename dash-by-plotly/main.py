@@ -10,18 +10,20 @@ tracked_lower = []
 tracked_upper = []
 
 app = Dash(__name__)
-app.layout = html.Div([
+app.layout = html.Div(
+    style={"display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center"},
+    children=[
     html.H1("Stock Tracker", style={"textAlign": "center"}),
     html.Div("Set Ticker: "),
-    dcc.Dropdown(id="stock-dropdown", options=stock_list, style={"width": "40%", "margin-bottom": "30px"}),
+    html.Div(dcc.Dropdown(id="stock-dropdown", options=stock_list, style={"width": "100px", "margin-bottom": "30px"})),
     html.Div("Set Lower Limit: "),
     dcc.Input(id="lower-input",type="number", min=0, max=current_price, style={"margin-bottom": "30px"}),
     html.Div("Set Upper Limit: "),
     dcc.Input(id="upper-input", type="number", min=current_price, max=None, style={"margin-bottom": "30px"}),
     html.Div("Current Price: "),
     html.Div(id="current-price", style={"margin-bottom": "30px"}),
-    html.Button("Submit", id="submit-button", n_clicks=0, style={"margin-bottom": "30px"}),
-    html.Div(id="submission-error", style={"margin-bottom": "30px"}),
+    html.Button("Submit", id="submit-button", n_clicks=0, style={"margin-bottom": "20px"}),
+    html.Div(id="submission-error"),
     html.H3("Tracking: "),
     # Set up table
     html.Div(id="tracked-stocks", style={"display": "flex", "flexDirection": "row", "gap": "20px"},
@@ -30,8 +32,9 @@ app.layout = html.Div([
             html.Div(children=[html.Div("Lower Limit: $" + str(lower)) for lower in tracked_lower]),
             html.Div(children=[html.Div("Upper Limit: $" + str(upper)) for upper in tracked_upper]),
         ]
-    )
-])
+        )
+    ]
+)
 
 
 # Handle selected ticker
@@ -64,15 +67,15 @@ def submit_values(n_clicks, stock_ticker, lower_limit, upper_limit):
     if n_clicks > num_clicks:
         num_clicks += 1
         if stock_ticker in tracked_tickers:
-            return html.Div("ERROR: This stock is already being tracked"), [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
+            return html.Div("ERROR: This stock is already being tracked", style={"font-weight": "bold"}), [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
                 html.Div(children=[html.Div("Lower Limit: $" + str(lower)) for lower in tracked_lower]), 
                 html.Div(children=[html.Div("Upper Limit: $" + str(upper)) for upper in tracked_upper])]
-        elif lower_limit == None or lower_limit >= current_price:
-            return html.Div("ERROR: No lower limit"), [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
+        elif lower_limit == None or lower_limit >= current_price or lower_limit < 0:
+            return html.Div("ERROR: No lower limit", style={"font-weight": "bold"}), [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
                 html.Div(children=[html.Div("Lower Limit: $" + str(lower)) for lower in tracked_lower]), 
                 html.Div(children=[html.Div("Upper Limit: $" + str(upper)) for upper in tracked_upper])]
         elif upper_limit == None or upper_limit <= current_price:
-            return html.Div("ERROR: No upper limit"), [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
+            return html.Div("ERROR: No upper limit", style={"font-weight": "bold"}), [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
                 html.Div(children=[html.Div("Lower Limit: $" + str(lower)) for lower in tracked_lower]), 
                 html.Div(children=[html.Div("Upper Limit: $" + str(upper)) for upper in tracked_upper])]
         else:
@@ -83,7 +86,6 @@ def submit_values(n_clicks, stock_ticker, lower_limit, upper_limit):
                 html.Div(children=[html.Div("Lower Limit: $" + str(lower)) for lower in tracked_lower]), 
                 html.Div(children=[html.Div("Upper Limit: $" + str(upper)) for upper in tracked_upper])]
         
-
 
 if __name__ == "__main__":
     app.run()
