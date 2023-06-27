@@ -33,16 +33,16 @@ app.layout = html.Div(
     html.Div(id="current-price", style={"margin-bottom": "30px"}),
     html.Div("Enter Email Address: "),
     dcc.Input(id="email-address", style={"margin-bottom": "30px"}),
-    html.Button("Submit", id="submit-button", n_clicks=0, style={"margin-bottom": "20px"}),
+    html.Button("Submit", id="submit-button", n_clicks=0, style={"margin-bottom": "15px"}),
     html.Div(id="submission-error"),
     html.H3("Tracking: "),
     # Set up table
     html.Div(id="tracked-stocks", style={"display": "flex", "flexDirection": "row", "gap": "20px"},
         children=[
             html.Div(children=[html.Div(stock.ticker) for stock in tracked_stocks]),
-            html.Div(children=[html.Div("Lower Limit: $" + str(stock.lower_limit)) for stock in tracked_stocks]),
-            html.Div(children=[html.Div("Upper Limit: $" + str(stock.upper_limit)) for stock in tracked_stocks]),
-            html.Div(children=[html.Div("Current Price: $" + str(round(si.get_live_price(stock.ticker), 2))) for stock in tracked_stocks])]
+            html.Div(children=[html.Div("Lower Limit: $" + str("{:.2f}".format(stock.lower_limit))) for stock in tracked_stocks]),
+            html.Div(children=[html.Div("Upper Limit: $" + str("{:.2f}".format(stock.upper_limit))) for stock in tracked_stocks]),
+            html.Div(children=[html.Div("Current Price: $" + str("{:.2f}".format(si.get_live_price(stock.ticker)))) for stock in tracked_stocks])]
         )
     ]
 )
@@ -72,7 +72,7 @@ def send_email(email, subject, body):
 def update_values(stock_ticker):
     global current_price
     current_price = si.get_live_price(stock_ticker)
-    return "$" + str(round(current_price, 2)), round(current_price, 2), round(current_price, 2)
+    return "$" + str("{:.2f}".format(current_price)), float("{:.2f}".format(current_price)), float("{:.2f}".format(current_price))
 
 
 # Handle submit button
@@ -117,25 +117,25 @@ def check_current_price(_, n):
     global tracked_stocks
     i = 0
     for stock in tracked_stocks:
-        if (round(si.get_live_price(stock.ticker), 2) >= stock.upper_limit):
-            send_email(email_address, f"{stock.ticker} has hit your threshold", f"{stock.ticker} has reached your upper limit and is trading at ${stock.lower_limit} per share")
+        if (float("{:.2f}".format(si.get_live_price(stock.ticker))) >= stock.upper_limit):
+            send_email(email_address, f"{stock.ticker} has hit your threshold", f"{stock.ticker} has reached your upper limit and is trading at ${stock.upper_limit} per share")
             tracked_stocks.remove(stock)
             return [html.Div(children=[html.Div(stock.ticker) for stock in tracked_stocks]), 
-                html.Div(children=[html.Div("Lower Limit: $" + str(stock.lower_limit)) for stock in tracked_stocks]), 
-                html.Div(children=[html.Div("Upper Limit: $" + str(stock.upper_limit)) for stock in tracked_stocks]),
-                html.Div(children=[html.Div("Current Price: $" + str(round(si.get_live_price(stock.ticker), 2))) for stock in tracked_stocks])]
-        elif (round(si.get_live_price(stock.ticker), 2) <= stock.lower_limit):
-            send_email(email_address, f"{stock.ticker} has hit your threshold", f"{stock.ticker} has reached your lower limit and is trading at ${stock.lower_limit} per share")
+                html.Div(children=[html.Div("Lower Limit: $" + str("{:.2f}".format(stock.lower_limit))) for stock in tracked_stocks]), 
+                html.Div(children=[html.Div("Upper Limit: $" + str("{:.2f}".format(stock.upper_limit))) for stock in tracked_stocks]),
+                html.Div(children=[html.Div("Current Price: $" + str("{:.2f}".format(si.get_live_price(stock.ticker)))) for stock in tracked_stocks])]
+        elif (float("{:.2f}".format(si.get_live_price(stock.ticker))) <= stock.lower_limit):
+            send_email(email_address, f"{stock.ticker} has hit your threshold", f"{stock.ticker} has reached your lower limit and is trading at ${'{:.2f}'.format(stock.lower_limit)} per share")
             tracked_stocks.remove(stock)
             return [html.Div(children=[html.Div(stock.ticker) for stock in tracked_stocks]), 
-                html.Div(children=[html.Div("Lower Limit: $" + str(stock.lower_limit)) for stock in tracked_stocks]), 
-                html.Div(children=[html.Div("Upper Limit: $" + str(stock.upper_limit)) for stock in tracked_stocks]),
-                html.Div(children=[html.Div("Current Price: $" + str(si.get_live_price(stock.ticker))) for stock in tracked_stocks])]
+                html.Div(children=[html.Div("Lower Limit: $" + str("{:.2f}".format(stock.lower_limit))) for stock in tracked_stocks]), 
+                html.Div(children=[html.Div("Upper Limit: $" + str("{:.2f}".format(stock.upper_limit))) for stock in tracked_stocks]),
+                html.Div(children=[html.Div("Current Price: $" + str("{:.2f}".format(si.get_live_price(stock.ticker)))) for stock in tracked_stocks])]
         i += 1
     return [html.Div(children=[html.Div(stock.ticker) for stock in tracked_stocks]), 
-                html.Div(children=[html.Div("Lower Limit: $" + str(stock.lower_limit)) for stock in tracked_stocks]), 
-                html.Div(children=[html.Div("Upper Limit: $" + str(stock.upper_limit)) for stock in tracked_stocks]),
-                html.Div(children=[html.Div("Current Price: $" + str(round(si.get_live_price(stock.ticker), 2))) for stock in tracked_stocks])]
+                html.Div(children=[html.Div("Lower Limit: $" + str("{:.2f}".format(stock.lower_limit))) for stock in tracked_stocks]), 
+                html.Div(children=[html.Div("Upper Limit: $" + str("{:.2f}".format(stock.upper_limit))) for stock in tracked_stocks]),
+                html.Div(children=[html.Div("Current Price: $" + str("{:.2f}".format(si.get_live_price(stock.ticker)))) for stock in tracked_stocks])]
 
 
 if __name__ == "__main__":
