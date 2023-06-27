@@ -75,7 +75,6 @@ def update_values(stock_ticker):
 # Handle submit button
 @app.callback(
     Output("submission-error", "children"),
-    Output("tracked-stocks", "children"),
     Input("submit-button", "n_clicks"),
     State("stock-dropdown", "value"),
     State("lower-input", "value"),
@@ -92,33 +91,27 @@ def submit_values(n_clicks, stock_ticker, lower_limit, upper_limit, user_email):
     if n_clicks > num_clicks:
         num_clicks += 1
         if stock_ticker in tracked_tickers:
-            return html.Div("ERROR: This stock is already being tracked", style={"font-weight": "bold"}), [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
-                html.Div(children=[html.Div("Lower Limit: $" + str(lower)) for lower in tracked_lower]), 
-                html.Div(children=[html.Div("Upper Limit: $" + str(upper)) for upper in tracked_upper])]
+            return html.Div("ERROR: This stock is already being tracked", style={"font-weight": "bold"})
         elif lower_limit == None or lower_limit > current_price or lower_limit < 0:
-            return html.Div("ERROR: Invalid lower limit", style={"font-weight": "bold"}), [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
-                html.Div(children=[html.Div("Lower Limit: $" + str(lower)) for lower in tracked_lower]), 
-                html.Div(children=[html.Div("Upper Limit: $" + str(upper)) for upper in tracked_upper])]
+            return html.Div("ERROR: Invalid lower limit", style={"font-weight": "bold"})
         elif upper_limit == None or upper_limit < current_price:
-            return html.Div("ERROR: Invalid upper limit", style={"font-weight": "bold"}), [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
-                html.Div(children=[html.Div("Lower Limit: $" + str(lower)) for lower in tracked_lower]), 
-                html.Div(children=[html.Div("Upper Limit: $" + str(upper)) for upper in tracked_upper])]
+            return html.Div("ERROR: Invalid upper limit", style={"font-weight": "bold"})
         else:
             tracked_tickers.append(stock_ticker)
             tracked_lower.append(lower_limit)
             tracked_upper.append(upper_limit)
-            return html.Div(""), [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
-                html.Div(children=[html.Div("Lower Limit: $" + str(lower)) for lower in tracked_lower]), 
-                html.Div(children=[html.Div("Upper Limit: $" + str(upper)) for upper in tracked_upper])]
+            return html.Div("")
 
 
 # Send email
 @app.callback(
     Output("placeholder", "children"),
+    Output("tracked-stocks", "children"),
     Input("trigger", "n_intervals"),
+    Input("submit-button", "n_clicks"),
     prevent_initial_call=True
 )
-def check_current_price(_):
+def check_current_price(_, n):
     global tracked_tickers
     global tracked_lower
     global tracked_upper
@@ -129,15 +122,23 @@ def check_current_price(_):
             tracked_tickers.remove(stock)
             tracked_lower.remove(tracked_lower[i])
             tracked_upper.remove(tracked_upper[i])
-            return f"Upper Limit Reached for {stock}"
+            return html.Div(f"Upper Limit Reached for {stock}"), [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
+                html.Div(children=[html.Div("Lower Limit: $" + str(lower)) for lower in tracked_lower]), 
+                html.Div(children=[html.Div("Upper Limit: $" + str(upper)) for upper in tracked_upper])]
         elif (round(si.get_live_price(stock), 2) <= tracked_lower[i]):
             send_email(email_address, f"{stock} has hit your threshold", f"{stock} has reached your lower limit and is trading at ${tracked_lower[i]} per share")
             tracked_tickers.remove(stock)
             tracked_lower.remove(tracked_lower[i])
             tracked_upper.remove(tracked_upper[i])
-            return f"Lower Limit Reached for {stock}"
+            return html.Div(f"Lower Limit Reached for {stock}"), [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
+                html.Div(children=[html.Div("Lower Limit: $" + str(lower)) for lower in tracked_lower]), 
+                html.Div(children=[html.Div("Upper Limit: $" + str(upper)) for upper in tracked_upper]),
+                html.Div(children=[html.Div("Current Price: $" + str(si.get_live_price(ticker))) for ticker in tracked_tickers])]
         i += 1
-    return ""
+    return "", [html.Div(children=[html.Div(stock) for stock in tracked_tickers]), 
+                html.Div(children=[html.Div("Lower Limit: $" + str(lower)) for lower in tracked_lower]), 
+                html.Div(children=[html.Div("Upper Limit: $" + str(upper)) for upper in tracked_upper]),
+                html.Div(children=[html.Div("Current Price: $" + str(round(si.get_live_price(ticker), 2))) for ticker in tracked_tickers])]
 
 
 if __name__ == "__main__":
