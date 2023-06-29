@@ -19,25 +19,25 @@ class Stock:
 
 app = Dash(__name__)
 app.layout = html.Div(
-    style={"display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontFamily": "Helvetica"},
+    style={"display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontFamily": "sans-serif"},
     children=[
-    html.H1("Stock Tracker", style={"textAlign": "center"}),
+    html.H1("Stock Tracker", style={"font-size": "4vw","textAlign": "center"}),
     dcc.Interval(id="trigger", interval=10000, n_intervals=0), # Updates every 10 seconds
-    html.Div("Set Ticker: "),
-    html.Div(dcc.Dropdown(id="stock-dropdown", options=stock_list, style={"width": "100px", "margin-bottom": "30px"})),
-    html.Div("Set Lower Limit: "),
-    dcc.Input(id="lower-input",type="number", min=0, max=current_price, style={"margin-bottom": "30px"}),
-    html.Div("Set Upper Limit: "),
-    dcc.Input(id="upper-input", type="number", min=current_price, max=None, style={"margin-bottom": "30px"}),
-    html.Div("Current Price: "),
-    html.Div(id="current-price", style={"margin-bottom": "30px"}),
-    html.Div("Enter Email Address: "),
-    dcc.Input(id="email-address", style={"margin-bottom": "30px"}),
-    html.Button("Submit", id="submit-button", n_clicks=0, style={"margin-bottom": "15px"}),
-    html.Div(id="submission-error"),
-    html.H3("Tracking: "),
+    html.Div("Set Ticker: ", style={"font-size": "1.5vw"}),
+    html.Div(dcc.Dropdown(id="stock-dropdown", options=stock_list, style={"font-size": "1.3vw", "width": "100px", "margin-bottom": "30px"})),
+    html.Div("Current Price: ", style={"font-size": "1.5vw"}),
+    html.Div(id="current-price", style={"font-size": "1.5vw", "margin-bottom": "30px"}),
+    html.Div("Set Lower Limit: ", style={"font-size": "1.5vw"}),
+    dcc.Input(id="lower-input",type="number", min=0, max=current_price, style={"font-size": "1.3vw", "margin-bottom": "30px"}),
+    html.Div("Set Upper Limit: ", style={"font-size": "1.5vw"}),
+    dcc.Input(id="upper-input", type="number", min=current_price, max=None, style={"font-size": "1.3vw", "margin-bottom": "30px"}),
+    html.Div("Enter Email Address: ", style={"font-size": "1.5vw"}),
+    dcc.Input(id="email-address", style={"font-size": "1.3vw", "margin-bottom": "30px"}),
+    html.Button("Submit", id="submit-button", n_clicks=0, style={"font-size": "1.3vw", "height": "40px", "width": "85px", "border-radius": "9px", "margin-bottom": "15px", "background-color": "#1a73e8", "color": "white", "border": "0px"}),
+    html.Div(id="submission-error", style={"font-size": "1.5vw"}),
+    html.H3("Tracking: ", style={"font-size": "2vw"}),
     # Set up table
-    html.Div(id="tracked-stocks", style={"display": "flex", "flexDirection": "row", "gap": "20px"},
+    html.Div(id="tracked-stocks", style={"font-size": "1.5vw", "display": "flex", "flexDirection": "row", "gap": "20px"},
         children=[
             html.Div(children=[html.Div(stock.ticker) for stock in tracked_stocks]),
             html.Div(children=[html.Div("Lower Limit: $" + str("{:.2f}".format(stock.lower_limit))) for stock in tracked_stocks]),
