@@ -4,6 +4,7 @@ import config
 from yahoo_fin import stock_info as si
 from dash import Dash, html, dcc, Input, Output, State, callback
 from email.message import EmailMessage
+import datetime
 
 stock_list = si.tickers_dow()
 current_price = None
@@ -22,11 +23,11 @@ app.layout = html.Div(
     style={"display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontFamily": "sans-serif"},
     children=[
     html.H1("Stock Tracker", style={"font-size": "4vw","textAlign": "center"}),
+    html.Div(id="container", style={"display": "flex", "flexDirection": "row"}, children=[
+    html.Div(id="left-col", style={"display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontFamily": "sans-serif"}, children=[
     dcc.Interval(id="trigger", interval=10000, n_intervals=0), # Updates every 10 seconds
-    html.Div("Set Ticker: ", style={"font-size": "1.5vw"}),
-    html.Div(dcc.Dropdown(id="stock-dropdown", options=stock_list, style={"font-size": "1.3vw", "width": "100px", "margin-bottom": "30px"})),
-    html.Div("Current Price: ", style={"font-size": "1.5vw"}),
-    html.Div(id="current-price", style={"font-size": "1.5vw", "margin-bottom": "30px"}),
+    html.Div("Track Ticker: ", style={"font-size": "1.5vw"}),
+    html.Div(dcc.Dropdown(id="stock-dropdown-track", options=stock_list, style={"font-size": "1.3vw", "width": "100px", "margin-bottom": "30px"})),
     html.Div("Set Lower Limit: ", style={"font-size": "1.5vw"}),
     dcc.Input(id="lower-input",type="number", min=0, max=current_price, style={"font-size": "1.3vw", "margin-bottom": "30px"}),
     html.Div("Set Upper Limit: ", style={"font-size": "1.5vw"}),
@@ -37,15 +38,20 @@ app.layout = html.Div(
     html.Div(id="submission-error", style={"font-size": "1.5vw"}),
     html.H3("Tracking: ", style={"font-size": "2vw"}),
     # Set up table
-    html.Div(id="tracked-stocks", style={"font-size": "1.5vw", "display": "flex", "flexDirection": "row", "gap": "20px"},
+    html.Div(id="tracked-stocks", style={"font-size": "1.2vw", "display": "flex", "flexDirection": "row", "gap": "20px"},
         children=[
             html.Div(children=[html.Div(stock.ticker) for stock in tracked_stocks]),
             html.Div(children=[html.Div("Lower Limit: $" + str("{:.2f}".format(stock.lower_limit))) for stock in tracked_stocks]),
             html.Div(children=[html.Div("Upper Limit: $" + str("{:.2f}".format(stock.upper_limit))) for stock in tracked_stocks]),
             html.Div(children=[html.Div("Current Price: $" + str("{:.2f}".format(si.get_live_price(stock.ticker)))) for stock in tracked_stocks])]
         )
-    ]
-)
+    ]),
+    html.Div(id="right-col", style={"display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "fontFamily": "sans-serif"}, children=[
+    dcc.Graph(id="line-history", figure={}, style={"font-size": "1.5vw"}),
+    html.Div("Current Price: ", style={"font-size": "1.5vw"}),
+    html.Div(id="current-price", style={"font-size": "1.5vw", "margin-bottom": "30px"}),
+    ])])
+])
 
 
 def send_email(email, subject, body):
@@ -67,19 +73,40 @@ def send_email(email, subject, body):
     Output("current-price", "children"),
     Output("lower-input", "max"),
     Output("upper-input", "min"),
-    Input("stock-dropdown", "value"),
+    Output("line-history", "figure"),
+    Input("trigger", "n_intervals"),
+    Input("stock-dropdown-track", "value")
 )
-def update_values(stock_ticker):
+def update_values(_, stock_ticker):
     global current_price
-    current_price = si.get_live_price(stock_ticker)
-    return "$" + str("{:.2f}".format(current_price)), float("{:.2f}".format(current_price)), float("{:.2f}".format(current_price))
+    current_price = si.get_live_price(str(stock_ticker))
+    end_date = datetime.datetime.today()
+    start_date = end_date - datetime.timedelta(days=182)
+    df = si.get_data(stock_ticker, start_date, end_date)
+    figure = {
+        'data': [
+            {
+                'x': df.index,
+                'open': df['open'],
+                'high': df['high'],
+                'low': df['low'],
+                'close': df['close'],
+                'type': 'candlestick',
+                'name': stock_ticker,
+            },
+        ],
+        'layout': {
+            'title': f'Stock Price History for {str(stock_ticker)}',
+        },
+    }
+    return "$" + str("{:.2f}".format(current_price)), float("{:.2f}".format(current_price)), float("{:.2f}".format(current_price)), figure
 
 
 # Handle submit button
 @app.callback(
     Output("submission-error", "children"),
     Input("submit-button", "n_clicks"),
-    State("stock-dropdown", "value"),
+    State("stock-dropdown-track", "value"),
     State("lower-input", "value"),
     State("upper-input", "value"),
     State("email-address", "value"),
